@@ -1,0 +1,10 @@
+{
+  "name": "note-share",
+  "version": "1.0.0",
+  "description": "Firefox web site annotation and note sharing",
+  "main": "index.js",
+  "repository": "git@github.com:pcapel/note-share.git",
+  "author": "Philip Capel <insert.available.name@gmail.com>",
+  "license": "GPLv3",
+  "private": false
+}
