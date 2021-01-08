@@ -7,7 +7,8 @@
   "author": "Philip Capel <insert.available.name@gmail.com>",
   "license": "GPLv3",
   "private": false,
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "typescript": "^4.1.3"
   }
 }
