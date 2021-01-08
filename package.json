@@ -6,5 +6,8 @@
   "repository": "git@github.com:pcapel/note-share.git",
   "author": "Philip Capel <insert.available.name@gmail.com>",
   "license": "GPLv3",
-  "private": false
+  "private": false,
+  "dependencies": {
+    "typescript": "^4.1.3"
+  }
 }
