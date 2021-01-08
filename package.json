@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "test": "jest"
+  },
   "name": "note-share",
   "version": "1.0.0",
   "description": "Firefox web site annotation and note sharing",
