@@ -6,7 +6,7 @@
   "description": "Annotate web pages like a boss",
   "content_scripts": [
     {
-      "matches": ["*"],
+      "matches": ["<all_urls>"],
       "js": ["dist/note_share.js"]
     }
   ]
