@@ -1,4 +1,4 @@
-const { makeRedBorder } = require('../index')
+import { makeRedBorder } from '../index'
 
 describe('makeRedBorder', () => {
   it('alters a mutable object to have a border value', ()=> {
