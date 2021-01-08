@@ -1,7 +1,10 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/index.ts',
+  entry: {
+    foreground: './src/content.ts',
+    background: './src/background.ts',
+  },
   module: {
     rules: [
       {
@@ -15,7 +18,7 @@ module.exports = {
     extensions: ['.ts', '.js'],
   },
   output: {
-    filename: 'note_share.js',
+    filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
   },
 };

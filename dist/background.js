@@ -1,0 +1,1 @@
+browser.contextMenus.create({id:"log-selection",title:"ASLDFJKL",contexts:["selection"]},(function(){}));
