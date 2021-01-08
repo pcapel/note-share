@@ -1,0 +1,14 @@
+{
+
+  "manifest_version": 2,
+  "name": "Note Share",
+  "version": "1.0.0",
+  "description": "Annotate web pages like a boss",
+  "content_scripts": [
+    {
+      "matches": ["*"],
+      "js": ["dist/note_share.js"]
+    }
+  ]
+
+}
