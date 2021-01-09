@@ -13,8 +13,8 @@ type Position = {
 };
 
 export function findAbsolutePosition(
-  selection: string,
-  parentNode: HTMLElement
+  _selection: string,
+  _parentNode: HTMLElement
 ): Position {
   const xPos = 0;
   const yPos = 0;
