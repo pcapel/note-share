@@ -3,7 +3,7 @@ const path = require('path');
 module.exports = {
   entry: {
     foreground: './src/content.ts',
-    background: './src/background.ts',
+    background: './src/background/index.ts',
   },
   module: {
     rules: [
