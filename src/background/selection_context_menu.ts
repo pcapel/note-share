@@ -1,5 +1,11 @@
 const contexts = ['selection'];
 
+const separator = {
+  id: 'click-context-sep',
+  type: 'separator',
+  contexts,
+};
+
 const basicNoteSelection = {
   id: 'basic-selection-note',
   title: 'Create Basic Note',
@@ -44,4 +50,5 @@ export const menuItems = [
   basicNoteSelection,
   questionNoteSelection,
   answerNoteSelection,
+  separator,
 ];
