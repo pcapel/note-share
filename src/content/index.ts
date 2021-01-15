@@ -1,7 +1,24 @@
 import { Context, HotKeyStack } from './utils';
 import { Note, placeNote } from './dom';
+import { buildDispatch, createAction, Action } from './state';
 
+// Register the custom note before it can be added
 customElements.define('share-note', Note);
+
+type PageState = {};
+
+const addBasicNote = createAction('ADD_BASIC_NOTE');
+
+function pageReducer(state: PageState, { action, data }: Action) {
+  switch (action) {
+    case addBasicNote.name:
+      return state;
+    default:
+      return state;
+  }
+}
+
+const dispatch = buildDispatch(pageReducer);
 
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
@@ -42,7 +59,8 @@ const dispatchNormalModeAction = (sequence: string): void => {
   switch (sequence) {
     case addNoteSequence:
       console.log('Add Note Path Hit');
-      placeNote(document.getSelection());
+      const noteData = placeNote(document.getSelection());
+      dispatch(addBasicNote(noteData));
       break;
     case addQuestionNoteSequence:
       console.log('Add Question Note Path Hit');

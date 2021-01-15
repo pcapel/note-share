@@ -25,16 +25,30 @@ export function cumulativeOffset(
 }
 
 export function placeNote(selection: Selection): void {
-  console.log('trying to place a note');
   const anchor = selection.anchorNode;
+  let position: Position;
   if (anchor instanceof HTMLElement) {
-    placeNoteOnElement(anchor);
+    position = placeNoteOnElement(anchor);
   } else {
-    placeNoteOnNode(anchor, selection);
+    position = placeNoteOnNode(anchor, selection);
   }
+
+  browser.storage.local
+    .get('ids')
+    .then((object: any) => {
+      const { ids } = object;
+      const newId = ids[ids.length - 1] + 1;
+      return [...ids, newId];
+    })
+    .then((newIds) => {
+      browser.storage.local.set({ ids: newIds });
+    });
 }
 
-export function placeNoteOnNode(textNode: Node, selection: Selection): void {
+export function placeNoteOnNode(
+  textNode: Node,
+  selection: Selection
+): Position {
   const position = cumulativeOffset(textNode, {
     anchorOffset: selection.anchorOffset,
   });
@@ -45,9 +59,10 @@ export function placeNoteOnNode(textNode: Node, selection: Selection): void {
   // @ts-ignore
   document.body.appendChild(note);
   (note as Note).input.focus();
+  return position;
 }
 
-export function placeNoteOnElement(textElement: HTMLElement): void {
+export function placeNoteOnElement(textElement: HTMLElement): Position {
   const position = cumulativeOffset(textElement, { anchorOffset: 0 });
 
   const note = document.createElement('share-note');
@@ -55,4 +70,5 @@ export function placeNoteOnElement(textElement: HTMLElement): void {
 
   // @ts-ignore
   document.body.appendChild(note);
+  return position;
 }
