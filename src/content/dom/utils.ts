@@ -62,7 +62,7 @@ export function placeNoteOnNode(
 
   // @ts-ignore
   document.body.appendChild(note);
-  (note as Note).input.focus();
+  setTimeout(() => (note as Note).input.focus(), 20);
   return position;
 }
 
@@ -74,5 +74,6 @@ export function placeNoteOnElement(textElement: HTMLElement): Position {
 
   // @ts-ignore
   document.body.appendChild(note);
+  setTimeout(() => (note as Note).input.focus(), 20);
   return position;
 }
