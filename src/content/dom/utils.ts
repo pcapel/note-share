@@ -1,12 +1,12 @@
-import { StyleArray, OffsetOptions, Position } from './types';
+import { OffsetOptions, Position } from './types';
 
 import { Note } from './note';
 
 export function cumulativeOffset(
   node: Node | HTMLElement,
   options: OffsetOptions
-): StyleArray {
-  if (node === null) return toPositionStyle(0, 0);
+): Position {
+  if (node === null) return [0, 0];
 
   let element = node.parentElement || node;
 
@@ -21,11 +21,7 @@ export function cumulativeOffset(
     element = element.offsetParent;
   } while (element);
 
-  return toPositionStyle(top, left);
-}
-
-export function reposition(element: HTMLElement, position: Position): void {
-  styled(element, toPositionStyle(...position));
+  return [top, left];
 }
 
 export function placeNote(selection: Selection): void {
@@ -43,7 +39,8 @@ export function placeNoteOnNode(textNode: Node, selection: Selection): void {
     anchorOffset: selection.anchorOffset,
   });
 
-  const note = styled(document.createElement('share-note'), position);
+  const note = document.createElement('share-note');
+  (note as Note).updatePosition(...position);
 
   // @ts-ignore
   document.body.appendChild(note);
@@ -53,27 +50,9 @@ export function placeNoteOnNode(textNode: Node, selection: Selection): void {
 export function placeNoteOnElement(textElement: HTMLElement): void {
   const position = cumulativeOffset(textElement, { anchorOffset: 0 });
 
-  const note = styled(document.createElement('share-note'), position);
+  const note = document.createElement('share-note');
+  (note as Note).updatePosition(...position);
 
   // @ts-ignore
   document.body.appendChild(note);
-}
-
-function toPositionStyle(x: number, y: number): StyleArray {
-  return [
-    ['top', `${x}px`],
-    ['left', `${y}px`],
-  ];
-}
-
-export function styled(
-  element: HTMLElement,
-  styleArray: StyleArray
-): HTMLElement {
-  styleArray.forEach((stylePair) => {
-    const [key, value] = stylePair;
-    // @ts-ignore
-    element.style[key] = value;
-  });
-  return element;
 }

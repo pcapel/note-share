@@ -7,6 +7,10 @@ function kill(event: MouseEvent): void {
   event.stopImmediatePropagation();
 }
 
+function px(value: number): string {
+  return `${value}px`;
+}
+
 export class Note extends HTMLElement {
   public input: HTMLElement;
   private container: HTMLElement;
@@ -69,9 +73,14 @@ export class Note extends HTMLElement {
   drag = (event: MouseEvent) => {
     if (this.state.dragging) {
       const [topAdj, leftAdj] = this.state.adjustment;
-      this.style.top = `${event.pageY + topAdj}`;
-      this.style.left = `${event.pageX + leftAdj}`;
+      this.style.top = px(event.pageY + topAdj);
+      this.style.left = px(event.pageX + leftAdj);
     }
+  };
+
+  public updatePosition = (top: number, left: number) => {
+    this.style.top = px(top);
+    this.style.left = px(left);
   };
 }
 
