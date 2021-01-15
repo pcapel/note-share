@@ -17,5 +17,5 @@
     "default_title": "NoteShare",
     "default_popup": "html/main_popup.html"
   },
-  "permissions": ["contextMenus"]
+  "permissions": ["contextMenus", "storage"]
 }
