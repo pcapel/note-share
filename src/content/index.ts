@@ -1,5 +1,18 @@
 import { Context, HotKeyStack } from './utils';
-import { placeNote } from './dom';
+import { Note, placeNote } from './dom';
+
+customElements.define('share-note', Note);
+
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+  share-note {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    backgroundColor: red;
+  }
+`;
+document.body.append(styleSheet);
 
 function checkWorking(document: HTMLDocument) {
   document.body.style.border = '3px solid green';
