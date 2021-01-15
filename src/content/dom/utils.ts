@@ -1,6 +1,10 @@
-import { OffsetOptions, Position } from './types';
-
 import { Note } from './note';
+
+export type Position = [number, number];
+
+export type OffsetOptions = {
+  anchorOffset: number;
+};
 
 export function cumulativeOffset(
   node: Node | HTMLElement,
