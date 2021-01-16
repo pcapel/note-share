@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { Context, HotKeyStack } from './hotkey_stack';
 import { Highlight, Note } from '../components';
 import { buildDispatch, createAction, Action } from './state';
-import { Position, last, cumulativeOffset } from '../utils';
+import { Position, last, cumulativeOffset, currentUrl } from '../utils';
 
 type Id = string;
 
@@ -282,11 +282,9 @@ const selectionContextSet = (_event: any): void => {
   }
 };
 
-const getHref = () => window.location.href;
-
 async function getPageState(): Promise<PageState> {
-  const href = getHref();
-  return browser.storage.local.get(href).then((storage: any) => storage[href]);
+  const url = currentUrl();
+  return browser.storage.local.get(url).then((storage: any) => storage[url]);
 }
 
 function placeActiveNotes(noteData: PageState): PageState {

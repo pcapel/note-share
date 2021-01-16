@@ -1,3 +1,5 @@
+import { currentUrl } from '../utils';
+
 export type Action = { type: string; data: any };
 
 export type Reducer = (state: any, action: Action) => any;
@@ -16,16 +18,15 @@ export function createAction(name: string) {
 export const buildDispatch = (reducer: Reducer) => async (
   action: Action
 ): Promise<any> => {
-  const href = window.location.href;
-
+  const url = currentUrl();
   return browser.storage.local
-    .get(href)
+    .get(url)
     .then((state) => {
       console.log('calling the reducer');
-      return reducer(state[href], action);
+      return reducer(state[url], action);
     })
     .then((nextState) => {
-      browser.storage.local.set({ [window.location.href]: nextState });
+      browser.storage.local.set({ [url]: nextState });
       return nextState;
     });
 };

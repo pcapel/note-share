@@ -33,3 +33,7 @@ export function cumulativeOffset(
 
   return [top, left];
 }
+
+export function currentUrl() {
+  return `${window.location.origin}${window.location.pathname}`;
+}
