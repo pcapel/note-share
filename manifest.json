@@ -12,6 +12,9 @@
       "js": ["dist/foreground.js"]
     }
   ],
+  "options_ui": {
+    "page": "html/settings.html"
+  },
   "browser_action": {
     "default_icon": "icons/notes.png",
     "default_title": "NoteShare",

@@ -1,0 +1,100 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Note Share Settings</title>
+</head>
+  <style>
+    nav {
+      margin-top: 0.5rem;
+    }
+    ul, ol {
+      list-style: none;
+    }
+    body {
+      background-color: #000;
+    }
+    .nav-item-active {
+      background-color: #00f;
+    }
+    .nav-item {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: #FFF;
+      padding: 0.5rem;
+      background-color: #aaa;
+      border-radius: 5px;
+      margin-bottom: 1rem;
+    }
+    .nav-item:hover {
+      background-color: #555;
+    }
+    .page {
+      color: #fff;
+      width: 100%;
+      height: 100%;
+    }
+    .hidden {
+      visibility: none;
+      display: none;
+    }
+    #sort-options {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #sort-options li {
+      margin-right: 0.5rem;
+      padding: 0.5rem;
+      border-radius: 5px;
+      background-color: #aaa;
+      min-width: 3rem;
+      text-align: center;
+    }
+
+    #sort-options li:hover {
+      background-color: #555;
+    }
+  </style>
+
+<body>
+  <nav>
+    <a class='nav-item' for='notes-management'>Notes Management</a>
+    <a class='nav-item' for='general-settings'>General Settings</a>
+    <a class='nav-item' for='advanced-settings'>Advanced Settings</a>
+  </nav>
+
+  <div class='page' id='notes-management'>
+    <h1>Notes Management</h1>
+    <div>
+      <label for='sort-options'>Sort By:</label>
+      <ol id='sort-options'>
+        <li>Created At</li>
+        <li>Updated At</li>
+        <li>Id</li>
+        <li>Href</li>
+        <li>Type</li>
+      </ol>
+    </div>
+
+    <label for='current-notes'>Current Notes:</label>
+    <ul id='current-notes'>
+    </ul>
+
+    <label for='recently-deleted'>Recently Deleted:</label>
+    <ul id='recently-deleted'>
+    </ul>
+  </div>
+
+  <div class='page' id='general-settings'>
+    <h1>General Settings</h1>
+  </div>
+
+  <div class='page' id='advanced-settings'>
+    <h1>Advanced Settings</h1>
+  </div>
+
+  <script src="../dist/options.js"></script>
+</body>
+</html>

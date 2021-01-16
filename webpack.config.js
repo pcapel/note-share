@@ -4,6 +4,7 @@ module.exports = {
   entry: {
     foreground: './src/content/index.ts',
     background: './src/background/index.ts',
+    options: './src/background/options.ts',
   },
   module: {
     rules: [

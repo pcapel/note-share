@@ -1,8 +1,7 @@
 import { Context, HotKeyStack } from './hotkey_stack';
-import { Highlight, Note, cumulativeOffset } from './dom';
+import { Highlight, Note } from '../components';
 import { buildDispatch, createAction, Action } from './state';
-import { last, replaceAtIndex } from './arr_utils';
-import { Position } from './dom/utils';
+import { Position, last, replaceAtIndex, cumulativeOffset } from '../utils';
 
 function checkWorking(document: HTMLDocument) {
   document.body.style.border = '3px solid green';

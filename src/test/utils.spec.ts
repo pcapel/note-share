@@ -1,4 +1,4 @@
-import { last, replaceAtIndex } from '../content/arr_utils';
+import { last, replaceAtIndex } from '../utils';
 
 describe('last', () => {
   it('behaves well for empty array', () => {
