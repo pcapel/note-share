@@ -94,6 +94,13 @@ const handleOnDrop = (note: HTMLElement) => (customEvent: CustomEvent) => {
   );
 };
 
+function placeNote(position: Position) {
+  const note = document.createElement('share-note');
+  (note as Note).updatePosition(...position);
+  document.body.appendChild(note);
+  return note;
+}
+
 const dispatchNormalModeAction = (sequence: string): void => {
   switch (sequence) {
     case addNoteSequence:
@@ -104,15 +111,12 @@ const dispatchNormalModeAction = (sequence: string): void => {
         anchorOffset = selection.anchorOffset;
       }
 
-      const note = document.createElement('share-note');
-
       const position = cumulativeOffset(selection.anchorNode, {
         anchorOffset: anchorOffset,
       });
 
-      (note as Note).updatePosition(...position);
+      const note = placeNote(position);
 
-      document.body.appendChild(note);
       setTimeout(() => (note as Note).input.focus(), 20);
 
       dispatch(addBasicNote(position)).then((nextState) => {
@@ -166,6 +170,19 @@ const selectionContextSet = (_event: any): void => {
   }
 };
 
+const placeExistingNotes = () => {
+  const href = window.location.href;
+  browser.storage.local.get(href).then((storage: any) => {
+    const { noteIds, notePositions } = storage[href];
+    noteIds.forEach((id: string, index: number) => {
+      const note = placeNote(notePositions[index]);
+      note.id = id;
+      note.addEventListener('ondragstop', handleOnDrop(note));
+    });
+  });
+};
+
 document.addEventListener('keydown', readHotkeys);
 document.addEventListener('keyup', clearHotkeys);
 document.addEventListener('selectionchange', selectionContextSet);
+placeExistingNotes();
