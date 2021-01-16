@@ -1,5 +1,3 @@
-import { Note } from './note';
-
 export type Position = [number, number];
 
 export type OffsetOptions = {
@@ -26,54 +24,4 @@ export function cumulativeOffset(
   } while (element);
 
   return [top, left];
-}
-
-export function placeNote(selection: Selection): void {
-  const anchor = selection.anchorNode;
-  let position: Position;
-  if (anchor instanceof HTMLElement) {
-    position = placeNoteOnElement(anchor);
-  } else {
-    position = placeNoteOnNode(anchor, selection);
-  }
-
-  browser.storage.local
-    .get('ids')
-    .then((object: any) => {
-      const { ids } = object;
-      const newId = ids[ids.length - 1] + 1;
-      return [...ids, newId];
-    })
-    .then((newIds) => {
-      browser.storage.local.set({ ids: newIds });
-    });
-}
-
-export function placeNoteOnNode(
-  textNode: Node,
-  selection: Selection
-): Position {
-  const position = cumulativeOffset(textNode, {
-    anchorOffset: selection.anchorOffset,
-  });
-
-  const note = document.createElement('share-note');
-  (note as Note).updatePosition(...position);
-
-  // @ts-ignore
-  document.body.appendChild(note);
-  setTimeout(() => (note as Note).input.focus(), 20);
-  return position;
-}
-
-export function placeNoteOnElement(textElement: HTMLElement): Position {
-  const position = cumulativeOffset(textElement, { anchorOffset: 0 });
-
-  const note = document.createElement('share-note');
-  (note as Note).updatePosition(...position);
-
-  // @ts-ignore
-  document.body.appendChild(note);
-  setTimeout(() => (note as Note).input.focus(), 20);
-  return position;
 }

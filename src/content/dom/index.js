@@ -1,2 +1,2 @@
-export { placeNote } from './utils';
+export { cumulativeOffset } from './utils';
 export { Note } from './note';

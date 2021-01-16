@@ -51,15 +51,15 @@ export class Note extends HTMLElement {
       document.body.style.userSelect = oldSelect;
       this.state.dragging = false;
       this.container.classList.remove('dragging');
+      const event = new CustomEvent('ondragstop', {
+        detail: [parseInt(this.style.top), parseInt(this.style.left)],
+      });
+      this.dispatchEvent(event);
     };
 
     this.shadowRoot.append(styleSheet, this.container);
     return this;
   }
-
-  attributeChangedCallback = (name: any, oldValue: any, newValue: any) => {
-    console.log(name, oldValue, newValue);
-  };
 
   recordPosition = (event: MouseEvent) => {
     const [top, left] = [parseInt(this.style.top), parseInt(this.style.left)];

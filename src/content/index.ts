@@ -1,18 +1,53 @@
-import { Context, HotKeyStack } from './utils';
-import { Note, placeNote } from './dom';
+import { Context, HotKeyStack } from './hotkey_stack';
+import { Note, cumulativeOffset } from './dom';
 import { buildDispatch, createAction, Action } from './state';
+import { last, replaceAtIndex } from './arr_utils';
+import { Position } from './dom/utils';
+
+function checkWorking(document: HTMLDocument) {
+  document.body.style.border = '3px solid green';
+}
+checkWorking(document);
 
 // Register the custom note before it can be added
 customElements.define('share-note', Note);
 
-type PageState = {};
+type Id = number;
+
+type PageState = {
+  noteIds: Id[];
+  notePositions: [Id, Position][];
+};
 
 const addBasicNote = createAction('ADD_BASIC_NOTE');
+const dragStopPositionChange = createAction('DRAG_STOP_POSITION_CHANGE');
 
-function pageReducer(state: PageState, { action, data }: Action) {
-  switch (action) {
-    case addBasicNote.name:
-      return state;
+function pageReducer(state: PageState, { type, data }: Action): PageState {
+  if (state === undefined) {
+    state = {
+      noteIds: [],
+      notePositions: [],
+    };
+  }
+  const { noteIds, notePositions } = state;
+  switch (type) {
+    case addBasicNote.type:
+      let newId;
+      if (last(noteIds) != undefined) {
+        newId = last(noteIds) + 1;
+      } else {
+        newId = 1;
+      }
+      return {
+        noteIds: [...noteIds, newId],
+        notePositions: [...notePositions, data],
+      };
+    case dragStopPositionChange.type:
+      const index = noteIds.indexOf(data.id);
+      return {
+        noteIds: [...noteIds],
+        notePositions: replaceAtIndex(notePositions, index, data.position),
+      };
     default:
       return state;
   }
@@ -30,11 +65,6 @@ styleSheet.textContent = `
   }
 `;
 document.body.append(styleSheet);
-
-function checkWorking(document: HTMLDocument) {
-  document.body.style.border = '3px solid green';
-}
-checkWorking(document);
 
 const EDIT_NODE_NAMES = ['TEXTAREA', 'INPUT'];
 const configuredContextStart = { normal: 'Backslash', search: 'Forwardslash' };
@@ -55,12 +85,40 @@ const dispatchSearchModeAction = (sequence: string): void => {
   }
 };
 
+const handleOnDrop = (note: HTMLElement) => (customEvent: CustomEvent) => {
+  dispatch(
+    dragStopPositionChange({
+      id: parseInt(note.id),
+      position: customEvent.detail,
+    })
+  );
+};
+
 const dispatchNormalModeAction = (sequence: string): void => {
   switch (sequence) {
     case addNoteSequence:
-      console.log('Add Note Path Hit');
-      const noteData = placeNote(document.getSelection());
-      dispatch(addBasicNote(noteData));
+      const selection = document.getSelection();
+      let anchorOffset = 0;
+      const anchor = selection.anchorNode;
+      if (!(anchor instanceof HTMLElement)) {
+        anchorOffset = selection.anchorOffset;
+      }
+
+      const note = document.createElement('share-note');
+
+      const position = cumulativeOffset(selection.anchorNode, {
+        anchorOffset: anchorOffset,
+      });
+
+      (note as Note).updatePosition(...position);
+
+      document.body.appendChild(note);
+      setTimeout(() => (note as Note).input.focus(), 20);
+
+      dispatch(addBasicNote(position)).then((nextState) => {
+        note.id = last(nextState.noteIds);
+        note.addEventListener('ondragstop', handleOnDrop(note));
+      });
       break;
     case addQuestionNoteSequence:
       console.log('Add Question Note Path Hit');

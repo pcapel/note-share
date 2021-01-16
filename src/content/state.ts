@@ -1,20 +1,28 @@
-export type Action = { action: string; data: any };
+export type Action = { type: string; data: any };
 
 export type Reducer = (state: any, action: Action) => any;
 
 export function createAction(name: string) {
-  this.name = name;
-  return (data: any): Action => ({
-    action: name,
-    data,
-  });
+  function action(data: any): Action {
+    return {
+      type: name,
+      data,
+    };
+  }
+  action.type = name;
+  return action;
 }
 
-export const buildDispatch = (reducer: Reducer) => (action: Action): void => {
-  browser.storage.local
-    .get(window.location.href)
-    .then((state) => reducer(state, action))
-    .then((nextState) =>
-      browser.storage.local.set({ [window.location.href]: nextState })
-    );
+export const buildDispatch = (reducer: Reducer) => async (
+  action: Action
+): Promise<any> => {
+  const href = window.location.href;
+  return browser.storage.local
+    .get(href)
+    .then((state) => reducer(state[href], action))
+    .then((nextState) => {
+      console.log('observed nextState: ', nextState);
+      browser.storage.local.set({ [window.location.href]: nextState });
+      return nextState;
+    });
 };

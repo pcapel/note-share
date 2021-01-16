@@ -1,4 +1,4 @@
-import { HotKeyStack, Context } from '../content/utils';
+import { HotKeyStack, Context } from '../content/hotkey_stack';
 
 const ContextEntries = { normal: 'Backslash', search: 'LeftShift' };
 
