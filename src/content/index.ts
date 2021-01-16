@@ -1,25 +1,47 @@
+import { v4 as uuid } from 'uuid';
+
 import { Context, HotKeyStack } from './hotkey_stack';
 import { Highlight, Note } from '../components';
 import { buildDispatch, createAction, Action } from './state';
-import { Position, last, replaceAtIndex, cumulativeOffset } from '../utils';
+import { Position, last, cumulativeOffset } from '../utils';
 
-function checkWorking(document: HTMLDocument) {
-  document.body.style.border = '3px solid green';
+type Id = string;
+
+type NoteState = {
+  id: Id;
+  position: Position;
+  content: string;
+  isDeleted: boolean;
+};
+
+type PageState = {
+  activeIds: Id[];
+  deletedIds: Id[];
+  notes: any;
+};
+
+const DefaultState: PageState = {
+  deletedIds: [],
+  activeIds: [],
+  notes: {},
+};
+
+function newDefaultNote(id: Id, position: Position) {
+  return {
+    id,
+    position,
+    content: '',
+    isDeleted: false,
+  };
 }
-checkWorking(document);
+
+let NoteIds: string[] = [];
+let CurrentNoteIndex: number = -1;
 
 function registerCustomElements(): void {
   customElements.define('share-note', Note);
   customElements.define('share-highlight', Highlight);
 }
-
-type Id = number;
-
-type PageState = {
-  noteIds: Id[];
-  notePositions: [Position][];
-  noteContent: string[];
-};
 
 const addBasicNote = createAction('ADD_BASIC_NOTE');
 const dragStopPositionChange = createAction('DRAG_STOP_POSITION_CHANGE');
@@ -27,40 +49,45 @@ const noteContentUpdate = createAction('NOTE_CONTENT_UPDATE');
 
 function pageReducer(state: PageState, { type, data }: Action): PageState {
   if (state === undefined) {
-    state = {
-      noteIds: [],
-      notePositions: [],
-      noteContent: [],
-    };
+    state = DefaultState;
   }
-  const { noteIds, notePositions, noteContent } = state;
-  const index = noteIds.indexOf(data.id);
+
+  const { deletedIds, activeIds, notes } = state;
+  const note: NoteState = notes[data.id];
+  let updatedNote;
+
   switch (type) {
     case addBasicNote.type:
-      let newId;
-      if (last(noteIds) != undefined) {
-        newId = last(noteIds) + 1;
-      } else {
-        newId = 1;
-      }
+      const newId = uuid();
       return {
-        noteIds: [...noteIds, newId],
-        notePositions: [...notePositions, data],
-        noteContent: [...noteContent, ''],
+        activeIds: [...activeIds, newId],
+        deletedIds: [...deletedIds],
+        notes: {
+          ...notes,
+          [newId]: newDefaultNote(newId, data.position),
+        },
       };
 
     case dragStopPositionChange.type:
+      updatedNote = {
+        ...note,
+        position: data.position,
+      };
       return {
-        noteIds: [...noteIds],
-        notePositions: replaceAtIndex(notePositions, index, data.position),
-        noteContent: [...noteContent],
+        activeIds: [...activeIds],
+        deletedIds: [...deletedIds],
+        notes: { ...notes, [note.id]: updatedNote },
       };
 
     case noteContentUpdate.type:
+      updatedNote = {
+        ...note,
+        content: data.content,
+      };
       return {
-        noteIds: [...noteIds],
-        notePositions: [...notePositions],
-        noteContent: replaceAtIndex(noteContent, index, data.content),
+        activeIds: [...activeIds],
+        deletedIds: [...deletedIds],
+        notes: { ...notes, [note.id]: updatedNote },
       };
     default:
       return state;
@@ -86,6 +113,7 @@ const configuredEscapeContext = 'Escape';
 
 // TODO: figure out configuration page for this. Populate with default values
 // from that page.
+const clearStack = 'KeyEscape';
 const addNoteSequence = 'KeyA-KeyN';
 const addQuestionNoteSequence = 'KeyA-KeyA';
 const toggleNotesVisible = 'KeyN-KeyV';
@@ -103,7 +131,7 @@ const dispatchSearchModeAction = (sequence: string): void => {
 const handleOnDrop = (note: HTMLElement) => (customEvent: CustomEvent) => {
   dispatch(
     dragStopPositionChange({
-      id: parseInt(note.id),
+      id: note.id,
       position: customEvent.detail,
     })
   );
@@ -116,7 +144,7 @@ function placeNote(position: Position, content: String | undefined) {
   note.input.addEventListener('change', (event: Event) => {
     // @ts-ignore
     const content = event.currentTarget.value;
-    dispatch(noteContentUpdate({ id: parseInt(note.id), content }));
+    dispatch(noteContentUpdate({ id: note.id, content }));
   });
   // @ts-ignore
   note.input.value = !!content ? content : '';
@@ -137,12 +165,13 @@ const dispatchNormalModeAction = (sequence: string): void => {
       const position = cumulativeOffset(selection.anchorNode, {
         anchorOffset: anchorOffset,
       });
+      console.log('adding a note at position', position);
 
       const note = placeNote(position, undefined);
 
       setTimeout(() => (note as Note).input.focus(), 20);
 
-      dispatch(addBasicNote(position)).then((nextState) => {
+      dispatch(addBasicNote({ position })).then((nextState) => {
         note.id = last(nextState.noteIds);
         note.addEventListener('ondragstop', handleOnDrop(note));
       });
@@ -154,14 +183,33 @@ const dispatchNormalModeAction = (sequence: string): void => {
       console.log('Make the notes invisible!');
       break;
 
-    case toggleNotesVisible:
-      console.log('Go to next note');
+    case gotoNextNote:
+      let nextIndex = 0;
+      if (!(CurrentNoteIndex + 1 >= NoteIds.length)) {
+        nextIndex = CurrentNoteIndex + 1;
+      }
+
+      const nextNote = document.getElementById(`${NoteIds[nextIndex]}`);
+      scrollToNote(nextNote);
+      CurrentNoteIndex = nextIndex;
+      break;
+    case clearStack:
+      console.log('clearing the stack');
+      Stack.clear();
       break;
 
     default:
       console.log(`Not a configured normal mode action sequence ${sequence}`);
   }
 };
+
+function scrollToNote(note: HTMLElement): void {
+  window.scrollTo({
+    top: parseInt(note.style.top),
+    left: parseInt(note.style.left),
+    behavior: 'smooth',
+  });
+}
 
 const readHotkeys = (event: KeyboardEvent): void => {
   if (EDIT_NODE_NAMES.includes(document.activeElement.nodeName)) return null;
@@ -180,7 +228,7 @@ const readHotkeys = (event: KeyboardEvent): void => {
   }
 };
 
-const clearHotkeys = (_event: KeyboardEvent) => {
+const clearHotkeys = () => {
   if (Stack.sequenceComplete) {
     Stack.clear();
   }
@@ -197,20 +245,51 @@ const selectionContextSet = (_event: any): void => {
   }
 };
 
-const placeExistingNotes = () => {
-  const href = window.location.href;
-  browser.storage.local.get(href).then((storage: any) => {
-    const { noteIds, notePositions, noteContent } = storage[href];
-    noteIds.forEach((id: string, index: number) => {
-      const note = placeNote(notePositions[index], noteContent[index]);
-      note.id = id;
-      note.addEventListener('ondragstop', handleOnDrop(note));
-    });
+const getHref = () => window.location.href;
+
+async function getPageState(): Promise<PageState> {
+  const href = getHref();
+  return browser.storage.local.get(href).then((storage: any) => storage[href]);
+}
+
+function placeActiveNotes(noteData: PageState): PageState {
+  const { activeIds, notes } = noteData;
+  activeIds.forEach((id: string) => {
+    const { position, content } = notes[id];
+    const note = placeNote(position, content);
+    note.id = `${id}`;
+    note.addEventListener('ondragstop', handleOnDrop(note));
   });
-};
+  return noteData;
+}
+
+function initializeNoteTrackingState(noteData: PageState): PageState {
+  const { activeIds } = noteData;
+  NoteIds = activeIds;
+  CurrentNoteIndex = 0;
+  return noteData;
+}
+
+/**
+ * Ostensibly I would use this like a migration handler.  Where I could create
+ * a several functions and have them run in order on the state. Something to
+ * allow changes in the model over time....
+ */
+// function initializeRequiredStateElements(noteData: PageState): PageState {
+//   if (noteData === undefined) {
+//     browser.storage.local.set({ [getHref()]: DefaultState });
+//     return DefaultState;
+//   }
+//   return noteData;
+// }
 
 registerCustomElements();
+
 document.addEventListener('keydown', readHotkeys);
 document.addEventListener('keyup', clearHotkeys);
 document.addEventListener('selectionchange', selectionContextSet);
-placeExistingNotes();
+
+getPageState()
+  .then(initializeNoteTrackingState)
+  .then(placeActiveNotes)
+  .then(() => console.log('initialization complete'));

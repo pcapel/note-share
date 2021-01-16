@@ -13,6 +13,7 @@ function px(value: number): string {
 
 export class Note extends HTMLElement {
   public input: HTMLElement;
+  public delete: HTMLElement;
   private container: HTMLElement;
   private state: NoteState;
 
@@ -29,22 +30,31 @@ export class Note extends HTMLElement {
     header.textContent = this.hasAttribute('header-text')
       ? this.getAttribute('header-text')
       : 'Note';
-    const input = document.createElement('textarea');
+    this.input = document.createElement('textarea');
+    this.delete = document.createElement('button');
+    this.delete.textContent = 'Delete';
 
     header.classList.add('header');
-    input.classList.add('input');
+    this.input.classList.add('input');
     this.container.classList.add('container');
+    this.delete.classList.add('delete');
 
     this.container.appendChild(header);
-    this.container.appendChild(input);
+    this.container.appendChild(this.input);
+    this.container.appendChild(this.delete);
 
     const styleSheet = document.createElement('style');
     styleSheet.textContent = styles;
 
-    this.input = input;
     const oldSelect = document.body.style.userSelect;
 
     this.input.onmousedown = killEventPropagation;
+    this.delete.onclick = (_event: MouseEvent) => {
+      const event = new CustomEvent('softdelete', {
+        detail: parseInt(this.id),
+      });
+      this.dispatchEvent(event);
+    };
 
     this.container.onmousedown = this.recordPosition;
 
@@ -52,10 +62,12 @@ export class Note extends HTMLElement {
       document.body.style.userSelect = oldSelect;
       this.state.dragging = false;
       this.container.classList.remove('dragging');
+      console.log('should emit');
       const event = new CustomEvent('ondragstop', {
         detail: [parseInt(this.style.top), parseInt(this.style.left)],
       });
       this.dispatchEvent(event);
+      console.log('should have emitted');
       document.onmousemove = null;
     };
 
@@ -105,6 +117,7 @@ const styles = `
 
   .header {
     font-family: sans serif;
+    width: 100%;
   }
   .container {
     z-index: 10000000;
@@ -127,5 +140,9 @@ const styles = `
     opacity: 0.2;
     background-color: purple;
     transform: translate(20deg);
+  }
+
+  .delete {
+    background-color: red;
   }
 `;

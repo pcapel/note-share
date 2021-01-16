@@ -17,9 +17,13 @@ export const buildDispatch = (reducer: Reducer) => async (
   action: Action
 ): Promise<any> => {
   const href = window.location.href;
+
   return browser.storage.local
     .get(href)
-    .then((state) => reducer(state[href], action))
+    .then((state) => {
+      console.log('calling the reducer');
+      return reducer(state[href], action);
+    })
     .then((nextState) => {
       browser.storage.local.set({ [window.location.href]: nextState });
       return nextState;
