@@ -90,6 +90,7 @@ const configuredEscapeContext = 'Escape';
 const addNoteSequence = 'KeyA-KeyN';
 const addQuestionNoteSequence = 'KeyA-KeyA';
 const toggleNotesVisible = 'KeyN-KeyV';
+const gotoNextNote = 'KeyN-KeyN';
 
 const Stack = new HotKeyStack(configuredContextStart);
 
@@ -153,6 +154,10 @@ const dispatchNormalModeAction = (sequence: string): void => {
       break;
     case toggleNotesVisible:
       console.log('Make the notes invisible!');
+      break;
+
+    case toggleNotesVisible:
+      console.log('Go to next note');
       break;
 
     default:
