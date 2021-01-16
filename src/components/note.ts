@@ -56,9 +56,9 @@ export class Note extends HTMLElement {
       this.dispatchEvent(event);
     };
 
-    this.container.onmousedown = this.recordPosition;
+    header.onmousedown = this.recordPosition;
 
-    this.container.onmouseup = () => {
+    header.onmouseup = () => {
       document.body.style.userSelect = oldSelect;
       this.state.dragging = false;
       this.container.classList.remove('dragging');
@@ -99,14 +99,6 @@ export class Note extends HTMLElement {
     this.style.top = px(top);
     this.style.left = px(left);
   };
-
-  public hide(): void {
-    this.classList.add('hidden');
-  }
-
-  public show(): void {
-    this.classList.remove('hidden');
-  }
 }
 
 const styles = `
@@ -116,8 +108,13 @@ const styles = `
   }
 
   .header {
+    text-align: center;
     font-family: sans serif;
     width: 100%;
+    cursor: move;
+  }
+  .header:hover {
+    background-color: #8e8c02;
   }
   .container {
     z-index: 10000000;

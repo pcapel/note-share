@@ -46,6 +46,7 @@ function registerCustomElements(): void {
 const addBasicNote = createAction('ADD_BASIC_NOTE');
 const dragStopPositionChange = createAction('DRAG_STOP_POSITION_CHANGE');
 const noteContentUpdate = createAction('NOTE_CONTENT_UPDATE');
+const softDeleteNote = createAction('SOFT_DELETE_NOTE');
 
 function pageReducer(state: PageState, { type, data }: Action): PageState {
   if (state === undefined) {
@@ -89,6 +90,19 @@ function pageReducer(state: PageState, { type, data }: Action): PageState {
         deletedIds: [...deletedIds],
         notes: { ...notes, [note.id]: updatedNote },
       };
+    case softDeleteNote.type:
+      updatedNote = {
+        ...note,
+        isDeleted: true,
+      };
+      const noteElement = document.getElementById(note.id);
+      document.body.removeChild(noteElement);
+
+      return {
+        activeIds: activeIds.filter((id) => id === note.id),
+        deletedIds: [...deletedIds, note.id],
+        notes: { ...notes, [note.id]: updatedNote },
+      };
     default:
       return state;
   }
@@ -125,6 +139,15 @@ const handleOnDrop = (note: HTMLElement) => (customEvent: CustomEvent) => {
     dragStopPositionChange({
       id: note.id,
       position: customEvent.detail,
+    })
+  );
+};
+
+const handleSoftDelete = (note: HTMLElement) => (customEvent: CustomEvent) => {
+  console.log('calling the soft delete handler.');
+  dispatch(
+    softDeleteNote({
+      id: note.id,
     })
   );
 };
@@ -273,6 +296,7 @@ function placeActiveNotes(noteData: PageState): PageState {
     const note = placeNote(position, content);
     note.id = `${id}`;
     note.addEventListener('ondragstop', handleOnDrop(note));
+    note.addEventListener('softdelete', handleSoftDelete(note));
   });
   return noteData;
 }

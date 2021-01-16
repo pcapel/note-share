@@ -45,6 +45,7 @@ function deactivateNav(element: Element): void {
 
 // TODO: get a better type for note data
 function mountNote(type: string, href: string, data: any) {
+  console.log(data);
   const noteElement = document.createElement('li');
   noteElement.textContent = `${href}: ${data.content}`;
   document.getElementById(type).appendChild(noteElement);
@@ -52,9 +53,12 @@ function mountNote(type: string, href: string, data: any) {
 
 function mountCurrentNotes(notes: any): object {
   for (let href in notes) {
-    const note = notes[href];
-    if (!note.isDeleted) {
-      mountNote('recently-deleted', href, note);
+    const pageData = notes[href];
+    for (let note of Object.values(pageData.notes)) {
+      // @ts-ignore
+      if (!note.isDeleted) {
+        mountNote('recently-deleted', href, note);
+      }
     }
   }
   return notes;
