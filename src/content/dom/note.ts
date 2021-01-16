@@ -3,7 +3,7 @@ type NoteState = {
   adjustment: [number, number];
 };
 
-function kill(event: MouseEvent): void {
+function killEventPropagation(event: MouseEvent): void {
   event.stopImmediatePropagation();
 }
 
@@ -44,9 +44,10 @@ export class Note extends HTMLElement {
     this.input = input;
     const oldSelect = document.body.style.userSelect;
 
-    this.input.onmousedown = kill;
+    this.input.onmousedown = killEventPropagation;
+
     this.container.onmousedown = this.recordPosition;
-    document.onmousemove = this.drag;
+
     this.container.onmouseup = () => {
       document.body.style.userSelect = oldSelect;
       this.state.dragging = false;
@@ -55,6 +56,7 @@ export class Note extends HTMLElement {
         detail: [parseInt(this.style.top), parseInt(this.style.left)],
       });
       this.dispatchEvent(event);
+      document.onmousemove = null;
     };
 
     this.shadowRoot.append(styleSheet, this.container);
@@ -64,10 +66,13 @@ export class Note extends HTMLElement {
   recordPosition = (event: MouseEvent) => {
     const [top, left] = [parseInt(this.style.top), parseInt(this.style.left)];
     const { pageX, pageY } = event;
+
     document.body.style.userSelect = 'none';
+
     this.state.adjustment = [top - pageY, left - pageX];
     this.state.dragging = true;
     this.container.classList.add('dragging');
+    document.onmousemove = this.drag;
   };
 
   drag = (event: MouseEvent) => {
@@ -89,6 +94,7 @@ const styles = `
     font-family: sans serif;
   }
   .container {
+    z-index: 10000000;
     opacity: 0.6;
     position: absolute;
     width: 200px;
