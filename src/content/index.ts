@@ -111,14 +111,6 @@ const EDIT_NODE_NAMES = ['TEXTAREA', 'INPUT'];
 const configuredContextStart = { normal: 'Backslash', search: 'Forwardslash' };
 const configuredEscapeContext = 'Escape';
 
-// TODO: figure out configuration page for this. Populate with default values
-// from that page.
-const clearStack = 'KeyEscape';
-const addNoteSequence = 'KeyA-KeyN';
-const addQuestionNoteSequence = 'KeyA-KeyA';
-const toggleNotesVisible = 'KeyN-KeyV';
-const gotoNextNote = 'KeyN-KeyN';
-
 const Stack = new HotKeyStack(configuredContextStart);
 
 const dispatchSearchModeAction = (sequence: string): void => {
@@ -151,6 +143,28 @@ function placeNote(position: Position, content: String | undefined) {
   document.body.appendChild(note);
   return note;
 }
+
+let Settings = {
+  hotkeys: {
+    clear: 'KeyEscape',
+    addNote: 'KeyA-KeyN',
+    addQuestion: 'KeyA-KeyA',
+    toggleVisible: 'KeyN-KeyV',
+    nextNote: 'KeyN-KeyN',
+  },
+};
+browser.storage.local.get('note-share-settings').then((settings) => {
+  if (settings !== undefined) {
+    Settings = settings as any;
+  }
+});
+
+const { hotkeys } = Settings;
+const clearStack = hotkeys.clear;
+const addNoteSequence = hotkeys.addNote;
+const addQuestionNoteSequence = hotkeys.addQuestion;
+const toggleNotesVisible = hotkeys.toggleVisible;
+const gotoNextNote = hotkeys.nextNote;
 
 const dispatchNormalModeAction = (sequence: string): void => {
   switch (sequence) {
