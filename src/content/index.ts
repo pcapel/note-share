@@ -1,5 +1,5 @@
 import { Context, HotKeyStack } from './hotkey_stack';
-import { Note, cumulativeOffset } from './dom';
+import { Highlight, Note, cumulativeOffset } from './dom';
 import { buildDispatch, createAction, Action } from './state';
 import { last, replaceAtIndex } from './arr_utils';
 import { Position } from './dom/utils';
@@ -9,8 +9,10 @@ function checkWorking(document: HTMLDocument) {
 }
 checkWorking(document);
 
-// Register the custom note before it can be added
-customElements.define('share-note', Note);
+function registerCustomElements(): void {
+  customElements.define('share-note', Note);
+  customElements.define('share-highlight', Highlight);
+}
 
 type Id = number;
 
@@ -205,6 +207,7 @@ const placeExistingNotes = () => {
   });
 };
 
+registerCustomElements();
 document.addEventListener('keydown', readHotkeys);
 document.addEventListener('keyup', clearHotkeys);
 document.addEventListener('selectionchange', selectionContextSet);

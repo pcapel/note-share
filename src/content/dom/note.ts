@@ -87,9 +87,22 @@ export class Note extends HTMLElement {
     this.style.top = px(top);
     this.style.left = px(left);
   };
+
+  public hide(): void {
+    this.classList.add('hidden');
+  }
+
+  public show(): void {
+    this.classList.remove('hidden');
+  }
 }
 
 const styles = `
+  .hidden { 
+    visibility: none; 
+    display: none; 
+  }
+
   .header {
     font-family: sans serif;
   }
