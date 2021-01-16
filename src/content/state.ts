@@ -21,7 +21,6 @@ export const buildDispatch = (reducer: Reducer) => async (
     .get(href)
     .then((state) => reducer(state[href], action))
     .then((nextState) => {
-      console.log('observed nextState: ', nextState);
       browser.storage.local.set({ [window.location.href]: nextState });
       return nextState;
     });

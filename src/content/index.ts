@@ -57,7 +57,6 @@ function pageReducer(state: PageState, { type, data }: Action): PageState {
       };
 
     case noteContentUpdate.type:
-      console.log(index, data, noteContent);
       return {
         noteIds: [...noteIds],
         notePositions: [...notePositions],
@@ -115,7 +114,6 @@ function placeNote(position: Position, content: String | undefined) {
   note.updatePosition(...position);
 
   note.input.addEventListener('change', (event: Event) => {
-    console.log('onchange', event);
     // @ts-ignore
     const content = event.currentTarget.value;
     dispatch(noteContentUpdate({ id: parseInt(note.id), content }));
