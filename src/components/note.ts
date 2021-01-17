@@ -108,10 +108,12 @@ const styles = `
   }
 
   .header {
+    font-family: sans-serif;
     text-align: center;
-    font-family: sans serif;
     width: 100%;
     cursor: move;
+    padding: 1rem;
+    box-sizing: border-box;
   }
   .header:hover {
     background-color: #8e8c02;
@@ -121,16 +123,17 @@ const styles = `
     opacity: 0.6;
     position: absolute;
     width: 200px;
-    height: 200px;
     background-color: yellow;
     cursor: pointer;
-    padding: 0.5rem 0.5rem 0 0.5rem;
+    padding: 0.5rem;
   }
 
   .input {
+    font-family: sans-serif;
     resize: none;
     width: 100%;
-    height: 70%;
+    height: 5rem;
+    line-height: 1rem;
   }
 
   .dragging {
@@ -140,6 +143,18 @@ const styles = `
   }
 
   .delete {
+    font-family: sans-serif;
+    font-size: 0.75rem;
+    padding: 0.15rem;
+    background-color: #660505;
+    color: #cccccc;
+  }
+
+  .delete:hover {
+    font-family: sans-serif;
+    font-size: 0.75rem;
+    padding: 0.15rem;
     background-color: red;
+    color: white;
   }
 `;
