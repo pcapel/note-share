@@ -15,12 +15,14 @@ type NoteState = {
 };
 
 type PageState = {
+  notesVisible: boolean;
   activeIds: Id[];
   deletedIds: Id[];
   notes: any;
 };
 
 const DefaultState: PageState = {
+  notesVisible: true,
   deletedIds: [],
   activeIds: [],
   notes: {},
@@ -47,20 +49,30 @@ const addBasicNote = createAction('ADD_BASIC_NOTE');
 const dragStopPositionChange = createAction('DRAG_STOP_POSITION_CHANGE');
 const noteContentUpdate = createAction('NOTE_CONTENT_UPDATE');
 const softDeleteNote = createAction('SOFT_DELETE_NOTE');
+const toggleNotesVisibleAction = createAction('TOGGLE_VISIBILITY');
 
 function pageReducer(state: PageState, { type, data }: Action): PageState {
   if (state === undefined) {
     state = DefaultState;
   }
+  console.log(state, data);
 
-  const { deletedIds, activeIds, notes } = state;
+  const { notesVisible, deletedIds, activeIds, notes } = state;
   const note: NoteState = notes[data.id];
   let updatedNote;
 
+  console.log('switching');
   switch (type) {
     case addBasicNote.type:
       const newId = uuid();
+
+      if (!notesVisible) {
+        placeActiveNotes(state);
+      }
+      // tracking the state for the page here too seems silly
+      NoteIds.push(newId);
       return {
+        notesVisible: true,
         activeIds: [...activeIds, newId],
         deletedIds: [...deletedIds],
         notes: {
@@ -75,6 +87,7 @@ function pageReducer(state: PageState, { type, data }: Action): PageState {
         position: data.position,
       };
       return {
+        notesVisible: notesVisible,
         activeIds: [...activeIds],
         deletedIds: [...deletedIds],
         notes: { ...notes, [note.id]: updatedNote },
@@ -86,6 +99,7 @@ function pageReducer(state: PageState, { type, data }: Action): PageState {
         content: data.content,
       };
       return {
+        notesVisible: notesVisible,
         activeIds: [...activeIds],
         deletedIds: [...deletedIds],
         notes: { ...notes, [note.id]: updatedNote },
@@ -99,10 +113,27 @@ function pageReducer(state: PageState, { type, data }: Action): PageState {
       document.body.removeChild(noteElement);
 
       return {
+        notesVisible: notesVisible,
         activeIds: activeIds.filter((id) => id === note.id),
         deletedIds: [...deletedIds, note.id],
         notes: { ...notes, [note.id]: updatedNote },
       };
+
+    case toggleNotesVisibleAction.type:
+      if (data) {
+        placeActiveNotes(state);
+      } else {
+        document.querySelectorAll('share-note').forEach((element) => {
+          document.body.removeChild(element);
+        });
+      }
+      return {
+        notesVisible: data,
+        activeIds: [...activeIds],
+        deletedIds: [...deletedIds],
+        notes: { ...notes },
+      };
+
     default:
       return state;
   }
@@ -169,7 +200,7 @@ function placeNote(position: Position, content: String | undefined) {
 
 let Settings = {
   hotkeys: {
-    clear: 'KeyEscape',
+    clear: 'Escape',
     addNote: 'KeyA-KeyN',
     addQuestion: 'KeyA-KeyA',
     toggleVisible: 'KeyN-KeyV',
@@ -217,7 +248,10 @@ const dispatchNormalModeAction = (sequence: string): void => {
       console.log('Add Question Note Path Hit');
       break;
     case toggleNotesVisible:
-      console.log('Make the notes invisible!');
+      console.log('trying to toggle visibility');
+      getPageState().then((pageState) => {
+        dispatch(toggleNotesVisibleAction(!pageState.notesVisible));
+      });
       break;
 
     case gotoNextNote:
