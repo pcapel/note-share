@@ -41,3 +41,30 @@ export function currentUrl() {
 export function pick(iter: Array<any>, key: string) {
   return iter.map((el) => el[key]);
 }
+
+export function px(value: number): string {
+  return `${value}px`;
+}
+
+export function unpx(value: string): number {
+  return parseInt(value);
+}
+
+const classToKey = (value: string): string => value.replace('.', '');
+
+const queryElement = (element: HTMLElement) => (
+  selector: string
+): HTMLElement => {
+  return element.querySelector(selector);
+};
+
+export const buildChildren = (
+  templateClone: HTMLElement,
+  childClasses: string[]
+) => {
+  const queryClone = queryElement(templateClone);
+
+  return childClasses.reduce((acc, cur) => {
+    return Object.assign(acc, { [classToKey(cur)]: queryClone(cur) });
+  }, {});
+};

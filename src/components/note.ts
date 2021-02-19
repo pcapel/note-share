@@ -1,13 +1,21 @@
+import { buildChildren, unpx, px } from '../utils';
+
+type NoteChildren = {
+  container?: HTMLElement;
+  input?: HTMLElement;
+  header?: HTMLElement;
+  deleteBtn?: HTMLElement;
+};
+
 type NoteState = {
   dragging: boolean;
   adjustment: [number, number];
+  children: NoteChildren;
+  userSelect: string;
 };
 
-function px(value: number): string {
-  return `${value}px`;
-}
-
 export const TEMPLATE_ID = 'share-note-note-template';
+const CHILD_CLASSES = ['.container', '.input', '.header', '.deleteBtn'];
 
 /**
  * The primary interface for this should be event driven and callback, like a
@@ -23,63 +31,73 @@ export class Note extends HTMLElement {
     this.state = {
       dragging: false,
       adjustment: [0, 0],
+      children: {},
+      userSelect: '',
     };
+
     const template = document.getElementById(TEMPLATE_ID);
     // @ts-ignore TODO: Why TF is content not a part of the type for this?
     const templateContent = template.content;
 
     const clone = templateContent.cloneNode(true);
-    const container = clone.querySelector('.container');
-    const input = clone.querySelector('.input');
-    const header = clone.querySelector('.header');
-    const deleteBtn = clone.querySelector('.delete');
 
-    const oldSelect = document.body.style.userSelect;
+    this.state.children = buildChildren(clone, CHILD_CLASSES);
 
-    input.onmousedown = (e: MouseEvent) => e.stopImmediatePropagation();
-    deleteBtn.onclick = (_event: MouseEvent) => {
-      const event = new CustomEvent('softdelete', {
-        detail: parseInt(this.id),
-      });
-      this.dispatchEvent(event);
-    };
+    this.state.children.input.onmousedown = (e: MouseEvent) =>
+      e.stopImmediatePropagation();
+    this.state.children.deleteBtn.onclick = this.dispatchSoftDelete;
+    this.state.children.header.onmousedown = this.capturePosition;
+    this.state.children.header.onmouseup = this.recordPosition;
 
-    header.onmousedown = (event: MouseEvent) => {
-      const [top, left] = [parseInt(this.style.top), parseInt(this.style.left)];
-      const { pageX, pageY } = event;
-      container.classList.add('dragging');
+    // Tracked because we don't want dragable units to do weird selection crap.
+    this.state.userSelect = document.body.style.userSelect;
 
-      document.body.style.userSelect = 'none';
-
-      this.state.adjustment = [top - pageY, left - pageX];
-      this.state.dragging = true;
-      document.onmousemove = this.drag;
-    };
-
-    header.onmouseup = () => {
-      document.body.style.userSelect = oldSelect;
-      this.state.dragging = false;
-      container.classList.remove('dragging');
-      const event = new CustomEvent('ondragstop', {
-        detail: [parseInt(this.style.top), parseInt(this.style.left)],
-      });
-      this.dispatchEvent(event);
-      document.onmousemove = null;
-    };
     this.shadowRoot.append(clone);
     return this;
   }
 
-  drag = (event: MouseEvent) => {
+  public updatePosition = (top: number, left: number) => {
+    this.style.top = px(top);
+    this.style.left = px(left);
+  };
+
+  private recordPosition = () => {
+    this.state.dragging = false;
+    this.state.children?.container.classList.remove('dragging');
+
+    document.body.style.userSelect = this.state.userSelect;
+
+    const event = new CustomEvent('ondragstop', {
+      detail: [unpx(this.style.top), unpx(this.style.left)],
+    });
+    this.dispatchEvent(event);
+    document.onmousemove = null;
+  };
+
+  private capturePosition = (event: MouseEvent) => {
+    const [top, left] = [unpx(this.style.top), unpx(this.style.left)];
+    const { pageX, pageY } = event;
+    this.state.children?.container.classList.add('dragging');
+
+    document.body.style.userSelect = 'none';
+
+    this.state.adjustment = [top - pageY, left - pageX];
+    this.state.dragging = true;
+    document.onmousemove = this.drag;
+  };
+
+  private dispatchSoftDelete = () => {
+    const event = new CustomEvent('softdelete', {
+      detail: parseInt(this.id),
+    });
+    this.dispatchEvent(event);
+  };
+
+  private drag = (event: MouseEvent) => {
     if (this.state.dragging) {
       const [topAdj, leftAdj] = this.state.adjustment;
       this.style.top = px(event.pageY + topAdj);
       this.style.left = px(event.pageX + leftAdj);
     }
-  };
-
-  public updatePosition = (top: number, left: number) => {
-    this.style.top = px(top);
-    this.style.left = px(left);
   };
 }
