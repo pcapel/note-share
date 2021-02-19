@@ -54,9 +54,14 @@ export class Note extends HTMLElement {
 
     this.state.children.input.onmousedown = (e: MouseEvent) =>
       e.stopImmediatePropagation();
-    this.state.children.deleteBtn.onclick = this.dispatchSoftDelete;
-    this.state.children.header.onmousedown = this.capturePosition;
-    this.state.children.header.onmouseup = this.recordPosition;
+    this.state.children.deleteBtn.onclick = () => {
+      this.dispatch('softdelete', parseInt(this.id));
+    };
+    this.state.children.header.onmousedown = (event: MouseEvent) => {
+      this.capturePosition(event);
+      this.startDragging();
+    };
+    this.state.children.header.onmouseup = this.stopDragging;
     this.state.children.input.onfocus = () => this.isOpaque(false);
     this.state.children.input.onblur = () => this.isOpaque(true);
 
@@ -72,29 +77,28 @@ export class Note extends HTMLElement {
     this.style.left = px(left);
   };
 
-  private recordPosition = () => {
+  private stopDragging = () => {
     this.state.dragging = false;
     this.state.children?.container.classList.remove('dragging');
 
     document.body.style.userSelect = this.state.userSelect;
 
-    const event = new CustomEvent('ondragstop', {
-      detail: [unpx(this.style.top), unpx(this.style.left)],
-    });
-    this.dispatchEvent(event);
+    this.dispatch('ondragstop', [unpx(this.style.top), unpx(this.style.left)]);
+
     document.onmousemove = null;
+  };
+
+  private startDragging = () => {
+    this.state.children?.container.classList.add('dragging');
+    document.body.style.userSelect = 'none';
+    this.state.dragging = true;
+    document.onmousemove = this.drag;
   };
 
   private capturePosition = (event: MouseEvent) => {
     const [top, left] = [unpx(this.style.top), unpx(this.style.left)];
     const { pageX, pageY } = event;
-    this.state.children?.container.classList.add('dragging');
-
-    document.body.style.userSelect = 'none';
-
     this.state.adjustment = [top - pageY, left - pageX];
-    this.state.dragging = true;
-    document.onmousemove = this.drag;
   };
 
   private isOpaque = (val: boolean) => {
@@ -105,11 +109,8 @@ export class Note extends HTMLElement {
     }
   };
 
-  private dispatchSoftDelete = () => {
-    const event = new CustomEvent('softdelete', {
-      detail: parseInt(this.id),
-    });
-    this.dispatchEvent(event);
+  private dispatch = (eventName: string, detail: any) => {
+    this.dispatchEvent(new CustomEvent(eventName, { detail }));
   };
 
   private drag = (event: MouseEvent) => {
