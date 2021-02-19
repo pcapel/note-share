@@ -1,18 +1,13 @@
 <template id='share-note-note-template'>
-  <div class='container'>
+  <div class='container opaque'>
     <h2 class='header'>Note</h2>
     <textarea class='input'></textarea>
     <button class='deleteBtn'>Delete</button>
   </div>
 
   <style>
-    .hidden { 
-      visibility: none; 
-      display: none; 
-    }
     .container {
       z-index: 10000000;
-      opacity: 0.6;
       position: absolute;
       width: 200px;
       background-color: yellow;
@@ -29,10 +24,6 @@
       padding: 1rem;
       box-sizing: border-box;
     }
-    .header:hover {
-      background-color: #8a7a00;
-      color: white;
-    }
 
     .input {
       font-family: sans-serif;
@@ -40,12 +31,7 @@
       width: 100%;
       height: 5rem;
       line-height: 1rem;
-    }
-
-    .dragging {
-      opacity: 0.2;
-      background-color: purple;
-      transform: translate(20deg);
+      padding: 0.25rem;
     }
 
     .deleteBtn {
@@ -54,6 +40,26 @@
       padding: 0.15rem;
       background-color: #660505;
       color: #cccccc;
+    }
+
+    .opaque {
+      opacity: 0.6;
+    }
+
+    .hidden { 
+      visibility: none; 
+      display: none; 
+    }
+
+    .header:hover {
+      background-color: #8a7a00;
+      color: white;
+    }
+
+    .dragging {
+      opacity: 0.2;
+      background-color: purple;
+      transform: translate(20deg);
     }
 
     .deleteBtn:hover {

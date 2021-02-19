@@ -18,8 +18,17 @@ export const TEMPLATE_ID = 'share-note-note-template';
 const CHILD_CLASSES = ['.container', '.input', '.header', '.deleteBtn'];
 
 /**
- * The primary interface for this should be event driven and callback, like a
- * standard element.
+ * Emits Events:
+ *
+ * ondragstop: When dragging is stopped.
+ *  detail: [top, left]
+ *
+ * softdelete: When delete button is pressed
+ *  detail: noteId
+ *
+ * noteupdate: When onchange fires for the input
+ *  detail: inputValue
+ *
  */
 export class Note extends HTMLElement {
   public delete: HTMLElement;
@@ -48,6 +57,8 @@ export class Note extends HTMLElement {
     this.state.children.deleteBtn.onclick = this.dispatchSoftDelete;
     this.state.children.header.onmousedown = this.capturePosition;
     this.state.children.header.onmouseup = this.recordPosition;
+    this.state.children.input.onfocus = () => this.isOpaque(false);
+    this.state.children.input.onblur = () => this.isOpaque(true);
 
     // Tracked because we don't want dragable units to do weird selection crap.
     this.state.userSelect = document.body.style.userSelect;
@@ -84,6 +95,14 @@ export class Note extends HTMLElement {
     this.state.adjustment = [top - pageY, left - pageX];
     this.state.dragging = true;
     document.onmousemove = this.drag;
+  };
+
+  private isOpaque = (val: boolean) => {
+    if (val) {
+      this.state.children.container.classList.add('opaque');
+    } else {
+      this.state.children.container.classList.remove('opaque');
+    }
   };
 
   private dispatchSoftDelete = () => {
