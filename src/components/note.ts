@@ -7,6 +7,12 @@ function px(value: number): string {
   return `${value}px`;
 }
 
+export const TEMPLATE_ID = 'share-note-note-template';
+
+/**
+ * The primary interface for this should be event driven and callback, like a
+ * standard element.
+ */
 export class Note extends HTMLElement {
   public delete: HTMLElement;
   private state: NoteState;
@@ -18,7 +24,7 @@ export class Note extends HTMLElement {
       dragging: false,
       adjustment: [0, 0],
     };
-    const template = document.getElementById('share-note-note-template');
+    const template = document.getElementById(TEMPLATE_ID);
     // @ts-ignore TODO: Why TF is content not a part of the type for this?
     const templateContent = template.content;
 
@@ -38,7 +44,17 @@ export class Note extends HTMLElement {
       this.dispatchEvent(event);
     };
 
-    header.onmousedown = this.recordPosition;
+    header.onmousedown = (event: MouseEvent) => {
+      const [top, left] = [parseInt(this.style.top), parseInt(this.style.left)];
+      const { pageX, pageY } = event;
+      container.classList.add('dragging');
+
+      document.body.style.userSelect = 'none';
+
+      this.state.adjustment = [top - pageY, left - pageX];
+      this.state.dragging = true;
+      document.onmousemove = this.drag;
+    };
 
     header.onmouseup = () => {
       document.body.style.userSelect = oldSelect;
@@ -53,18 +69,6 @@ export class Note extends HTMLElement {
     this.shadowRoot.append(clone);
     return this;
   }
-
-  recordPosition = (event: MouseEvent) => {
-    const [top, left] = [parseInt(this.style.top), parseInt(this.style.left)];
-    const { pageX, pageY } = event;
-
-    document.body.style.userSelect = 'none';
-
-    this.state.adjustment = [top - pageY, left - pageX];
-    this.state.dragging = true;
-    //this.template.classList.add('dragging');
-    document.onmousemove = this.drag;
-  };
 
   drag = (event: MouseEvent) => {
     if (this.state.dragging) {
