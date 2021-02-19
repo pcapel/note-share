@@ -3,18 +3,12 @@ type NoteState = {
   adjustment: [number, number];
 };
 
-function killEventPropagation(event: MouseEvent): void {
-  event.stopImmediatePropagation();
-}
-
 function px(value: number): string {
   return `${value}px`;
 }
 
 export class Note extends HTMLElement {
-  public input: HTMLElement;
   public delete: HTMLElement;
-  private container: HTMLElement;
   private state: NoteState;
 
   constructor() {
@@ -24,32 +18,20 @@ export class Note extends HTMLElement {
       dragging: false,
       adjustment: [0, 0],
     };
+    const template = document.getElementById('share-note-note-template');
+    // @ts-ignore TODO: Why TF is content not a part of the type for this?
+    const templateContent = template.content;
 
-    this.container = document.createElement('div');
-    const header = document.createElement('h3');
-    header.textContent = this.hasAttribute('header-text')
-      ? this.getAttribute('header-text')
-      : 'Note';
-    this.input = document.createElement('textarea');
-    this.delete = document.createElement('button');
-    this.delete.textContent = 'Delete';
-
-    header.classList.add('header');
-    this.input.classList.add('input');
-    this.container.classList.add('container');
-    this.delete.classList.add('delete');
-
-    this.container.appendChild(header);
-    this.container.appendChild(this.input);
-    this.container.appendChild(this.delete);
-
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = styles;
+    const clone = templateContent.cloneNode(true);
+    const container = clone.querySelector('.container');
+    const input = clone.querySelector('.input');
+    const header = clone.querySelector('.header');
+    const deleteBtn = clone.querySelector('.delete');
 
     const oldSelect = document.body.style.userSelect;
 
-    this.input.onmousedown = killEventPropagation;
-    this.delete.onclick = (_event: MouseEvent) => {
+    input.onmousedown = (e: MouseEvent) => e.stopImmediatePropagation();
+    deleteBtn.onclick = (_event: MouseEvent) => {
       const event = new CustomEvent('softdelete', {
         detail: parseInt(this.id),
       });
@@ -61,17 +43,14 @@ export class Note extends HTMLElement {
     header.onmouseup = () => {
       document.body.style.userSelect = oldSelect;
       this.state.dragging = false;
-      this.container.classList.remove('dragging');
-      console.log('should emit');
+      container.classList.remove('dragging');
       const event = new CustomEvent('ondragstop', {
         detail: [parseInt(this.style.top), parseInt(this.style.left)],
       });
       this.dispatchEvent(event);
-      console.log('should have emitted');
       document.onmousemove = null;
     };
-
-    this.shadowRoot.append(styleSheet, this.container);
+    this.shadowRoot.append(clone);
     return this;
   }
 
@@ -83,7 +62,7 @@ export class Note extends HTMLElement {
 
     this.state.adjustment = [top - pageY, left - pageX];
     this.state.dragging = true;
-    this.container.classList.add('dragging');
+    //this.template.classList.add('dragging');
     document.onmousemove = this.drag;
   };
 
@@ -100,61 +79,3 @@ export class Note extends HTMLElement {
     this.style.left = px(left);
   };
 }
-
-const styles = `
-  .hidden { 
-    visibility: none; 
-    display: none; 
-  }
-
-  .header {
-    font-family: sans-serif;
-    text-align: center;
-    width: 100%;
-    cursor: move;
-    padding: 1rem;
-    box-sizing: border-box;
-  }
-  .header:hover {
-    background-color: #8e8c02;
-  }
-  .container {
-    z-index: 10000000;
-    opacity: 0.6;
-    position: absolute;
-    width: 200px;
-    background-color: yellow;
-    cursor: pointer;
-    padding: 0.5rem;
-  }
-
-  .input {
-    font-family: sans-serif;
-    resize: none;
-    width: 100%;
-    height: 5rem;
-    line-height: 1rem;
-  }
-
-  .dragging {
-    opacity: 0.2;
-    background-color: purple;
-    transform: translate(20deg);
-  }
-
-  .delete {
-    font-family: sans-serif;
-    font-size: 0.75rem;
-    padding: 0.15rem;
-    background-color: #660505;
-    color: #cccccc;
-  }
-
-  .delete:hover {
-    font-family: sans-serif;
-    font-size: 0.75rem;
-    padding: 0.15rem;
-    background-color: red;
-    color: white;
-  }
-`;

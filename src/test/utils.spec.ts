@@ -1,4 +1,4 @@
-import { last, replaceAtIndex } from '../utils';
+import { pick, last, replaceAtIndex } from '../utils';
 
 describe('last', () => {
   it('behaves well for empty array', () => {
@@ -25,5 +25,28 @@ describe('replaceAtIndex', () => {
 
   it('is a noop for indices that do not exist', () => {
     expect(replaceAtIndex([1, 2, 3, 4, 5], 10, 100)).toEqual([1, 2, 3, 4, 5]);
+  });
+});
+
+describe('pick', () => {
+  it('pulls a key from objects in an iterable', () => {
+    const arr = [
+      { key: 'value1' },
+      { key: 'value2' },
+      { key: 'value3' },
+      { key: 'value4' },
+      { key: 'value5' },
+      { key: 'value6' },
+    ];
+    const expected = [
+      'value1',
+      'value2',
+      'value3',
+      'value4',
+      'value5',
+      'value6',
+    ];
+
+    expect(pick(arr, 'key')).toEqual(expected);
   });
 });

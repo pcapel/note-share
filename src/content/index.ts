@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 
 import { Context, HotKeyStack } from './hotkey_stack';
-import { Highlight, Note } from '../components';
+import { Note } from '../components';
 import { buildDispatch, createAction, Action } from './state';
 import { Position, last, cumulativeOffset, currentUrl } from '../utils';
 
@@ -12,6 +12,8 @@ type NoteState = {
   position: Position;
   content: string;
   isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 type PageState = {
@@ -28,12 +30,22 @@ const DefaultState: PageState = {
   notes: {},
 };
 
-function newDefaultNote(id: Id, position: Position) {
+const NOTE_CONTAINER = 'notes-container';
+const TEMPLATE_CONTAINER = 'templates-container';
+
+function localeDateTimeString(): string {
+  const date = new Date();
+  return `${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`;
+}
+
+function newDefaultNote(id: Id, position: Position): NoteState {
   return {
     id,
     position,
     content: '',
     isDeleted: false,
+    createdAt: localeDateTimeString(),
+    updatedAt: localeDateTimeString(),
   };
 }
 
@@ -42,7 +54,6 @@ let CurrentNoteIndex: number = -1;
 
 function registerCustomElements(): void {
   customElements.define('share-note', Note);
-  customElements.define('share-highlight', Highlight);
 }
 
 const addBasicNote = createAction('ADD_BASIC_NOTE');
@@ -183,18 +194,26 @@ const handleSoftDelete = (note: HTMLElement) => (customEvent: CustomEvent) => {
   );
 };
 
+function doThing() {
+  console.log('oh hi');
+}
+
 function placeNote(position: Position, content: String | undefined) {
-  const note = document.createElement('share-note') as Note;
+  const container = getContainer(NOTE_CONTAINER);
+  const note = document.createElement('share-note');
+  // @ts-ignore TODO: get the Note type back in here
   note.updatePosition(...position);
 
-  note.input.addEventListener('change', (event: Event) => {
-    // @ts-ignore
-    const content = event.currentTarget.value;
-    dispatch(noteContentUpdate({ id: note.id, content }));
-  });
   // @ts-ignore
-  note.input.value = !!content ? content : '';
-  document.body.appendChild(note);
+  // note.input.addEventListener('change', (event: Event) => {
+  //   // @ts-ignore
+  //   const content = event.currentTarget.value;
+  //   dispatch(noteContentUpdate({ id: note.id, content }));
+  // });
+  // @ts-ignore
+  // note.input.value = !!content ? content : '';
+  console.log('trying to add', note, 'into', container);
+  container.appendChild(note);
   return note;
 }
 
@@ -237,7 +256,8 @@ const dispatchNormalModeAction = (sequence: string): void => {
 
       const note = placeNote(position, undefined);
 
-      setTimeout(() => (note as Note).input.focus(), 20);
+      // @ts-ignore
+      setTimeout(() => note.input.focus(), 20);
 
       dispatch(addBasicNote({ position })).then((nextState) => {
         note.id = last(nextState.noteIds);
@@ -353,13 +373,37 @@ function initializeNoteTrackingState(noteData: PageState): PageState {
 //   return noteData;
 // }
 
-registerCustomElements();
+const getContainer = (containerId: string): HTMLElement => {
+  const existingNode = document.getElementById(containerId);
+  if (existingNode) {
+    return existingNode;
+  }
+  const createdNode = document.createElement('div');
+  createdNode.id = containerId;
+  return createdNode;
+};
 
-document.addEventListener('keydown', readHotkeys);
-document.addEventListener('keyup', clearHotkeys);
-document.addEventListener('selectionchange', selectionContextSet);
+browser.runtime.onMessage.addListener((templates: [[string, string]]) => {
+  const templateStrings = templates.map((t) => t[1]);
+  const templateIds = templates.map((t) => t[0]);
 
-getPageState()
-  .then(initializeNoteTrackingState)
-  .then(placeActiveNotes)
-  .then(() => console.log('initialization complete'));
+  const templateContainer = getContainer(TEMPLATE_CONTAINER);
+  const notesContainer = getContainer(NOTE_CONTAINER);
+
+  document.body.appendChild(templateContainer);
+  document.body.appendChild(notesContainer);
+  templateContainer.innerHTML = templateStrings.join('');
+
+  templateIds.forEach((id) => console.log(document.getElementById(id)));
+
+  registerCustomElements();
+
+  document.addEventListener('keydown', readHotkeys);
+  document.addEventListener('keyup', clearHotkeys);
+  document.addEventListener('selectionchange', selectionContextSet);
+
+  getPageState()
+    .then(initializeNoteTrackingState)
+    .then(placeActiveNotes)
+    .then(() => console.log('initialization complete'));
+});

@@ -37,3 +37,7 @@ export function cumulativeOffset(
 export function currentUrl() {
   return `${window.location.origin}${window.location.pathname}`;
 }
+
+export function pick(iter: Array<any>, key: string) {
+  return iter.map((el) => el[key]);
+}

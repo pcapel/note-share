@@ -1,2 +1,2 @@
 export { Note } from './note';
-export { Highlight } from './highlight';
+export { buildHighlight } from './highlight';
