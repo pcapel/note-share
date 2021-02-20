@@ -1,10 +1,10 @@
-import { buildChildren, unpx, px } from '../utils';
+import { killEvent, buildChildren, unpx, px } from '../utils';
 
 type NoteChildren = {
-  container?: HTMLElement;
-  input?: HTMLElement;
-  header?: HTMLElement;
-  deleteBtn?: HTMLElement;
+  container?: HTMLDivElement;
+  input?: HTMLTextAreaElement;
+  header?: HTMLHeadingElement;
+  deleteBtn?: HTMLButtonElement;
 };
 
 type NoteState = {
@@ -33,6 +33,7 @@ const CHILD_CLASSES = ['.container', '.input', '.header', '.deleteBtn'];
 export class Note extends HTMLElement {
   public delete: HTMLElement;
   private state: NoteState;
+  private _content: string;
 
   constructor() {
     super();
@@ -52,18 +53,22 @@ export class Note extends HTMLElement {
 
     this.state.children = buildChildren(clone, CHILD_CLASSES);
 
-    this.state.children.input.onmousedown = (e: MouseEvent) =>
-      e.stopImmediatePropagation();
     this.state.children.deleteBtn.onclick = () => {
       this.dispatch('softdelete', parseInt(this.id));
     };
+
     this.state.children.header.onmousedown = (event: MouseEvent) => {
       this.capturePosition(event);
       this.startDragging();
     };
     this.state.children.header.onmouseup = this.stopDragging;
+
+    this.state.children.input.onmousedown = killEvent;
     this.state.children.input.onfocus = () => this.isOpaque(false);
     this.state.children.input.onblur = () => this.isOpaque(true);
+    this.state.children.input.onchange = () => {
+      this.dispatch('noteupdate', this.state.children.input.value);
+    };
 
     // Tracked because we don't want dragable units to do weird selection crap.
     this.state.userSelect = document.body.style.userSelect;
@@ -76,6 +81,19 @@ export class Note extends HTMLElement {
     this.style.top = px(top);
     this.style.left = px(left);
   };
+
+  // TODO: figure out why this can't be done in the setter...
+  public setValue = (value: string) => {
+    this.state.children.input.value = value;
+  };
+
+  public set content(value: string) {
+    this._content = value;
+  }
+
+  public get content() {
+    return this._content;
+  }
 
   private stopDragging = () => {
     this.state.dragging = false;

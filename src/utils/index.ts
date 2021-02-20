@@ -68,3 +68,7 @@ export const buildChildren = (
     return Object.assign(acc, { [classToKey(cur)]: queryClone(cur) });
   }, {});
 };
+
+export const killEvent = (event: Event) => {
+  event.stopImmediatePropagation();
+};

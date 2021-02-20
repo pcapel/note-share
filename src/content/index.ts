@@ -185,7 +185,7 @@ const handleOnDrop = (note: HTMLElement) => (customEvent: CustomEvent) => {
   );
 };
 
-const handleSoftDelete = (note: HTMLElement) => (customEvent: CustomEvent) => {
+const handleSoftDelete = (note: HTMLElement) => (_customEvent: CustomEvent) => {
   console.log('calling the soft delete handler.');
   dispatch(
     softDeleteNote({
@@ -194,25 +194,17 @@ const handleSoftDelete = (note: HTMLElement) => (customEvent: CustomEvent) => {
   );
 };
 
-function doThing() {
-  console.log('oh hi');
-}
-
-function placeNote(position: Position, content: String | undefined) {
+function placeNote(position: Position, content: string | undefined) {
   const container = getContainer(NOTE_CONTAINER);
-  const note = document.createElement('share-note');
-  // @ts-ignore TODO: get the Note type back in here
+  const note = document.createElement('share-note') as Note;
   note.updatePosition(...position);
-
-  // @ts-ignore
-  // note.input.addEventListener('change', (event: Event) => {
-  //   // @ts-ignore
-  //   const content = event.currentTarget.value;
-  //   dispatch(noteContentUpdate({ id: note.id, content }));
-  // });
-  // @ts-ignore
-  // note.input.value = !!content ? content : '';
-  console.log('trying to add', note, 'into', container);
+  note.addEventListener('noteupdate', (event: Event) => {
+    // @ts-ignore
+    const eventContent = event.detail;
+    dispatch(noteContentUpdate({ id: note.id, content: eventContent }));
+  });
+  note.content = !!content ? content : '';
+  note.setValue(note.content);
   container.appendChild(note);
   return note;
 }
@@ -349,6 +341,9 @@ function placeActiveNotes(noteData: PageState): PageState {
     note.id = `${id}`;
     note.addEventListener('ondragstop', handleOnDrop(note));
     note.addEventListener('softdelete', handleSoftDelete(note));
+    note.addEventListener('noteupdate', (e: any) =>
+      console.log('noteupdate event', e)
+    );
   });
   return noteData;
 }
