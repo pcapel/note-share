@@ -80,8 +80,10 @@ function pageReducer(state: PageState, { type, data }: Action): PageState {
       if (!notesVisible) {
         placeActiveNotes(state);
       }
+
       // tracking the state for the page here too seems silly
       NoteIds.push(newId);
+
       return {
         notesVisible: true,
         activeIds: [...activeIds, newId],
@@ -244,17 +246,18 @@ const dispatchNormalModeAction = (sequence: string): void => {
       const position = cumulativeOffset(selection.anchorNode, {
         anchorOffset: anchorOffset,
       });
-      console.log('adding a note at position', position);
 
       const note = placeNote(position, undefined);
 
       // @ts-ignore
       setTimeout(() => note.input.focus(), 20);
 
-      dispatch(addBasicNote({ position })).then((nextState) => {
-        note.id = last(nextState.noteIds);
-        note.addEventListener('ondragstop', handleOnDrop(note));
-      });
+      dispatch(addBasicNote({ position }))
+        .then((nextState: any) => {
+          note.id = last(nextState.activeIds);
+          note.addEventListener('ondragstop', handleOnDrop(note));
+        })
+        .catch((e) => console.error(e));
       break;
     case addQuestionNoteSequence:
       console.log('Add Question Note Path Hit');

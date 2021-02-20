@@ -19,10 +19,10 @@ export const buildDispatch = (reducer: Reducer) => async (
   action: Action
 ): Promise<any> => {
   const url = currentUrl();
+  // TODO: figure out a middleware architecture for parsing the URL into something unique
   return browser.storage.local
     .get(url)
     .then((state) => {
-      console.log('calling the reducer');
       return reducer(state[url], action);
     })
     .then((nextState) => {
